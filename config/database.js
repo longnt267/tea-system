@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import dotenv from "dotenv";
-import { User } from "../entities/index.js";
+import { User } from "../entities/user.js";
 dotenv.config();
 
 if (!process.env.DATABASE_URL) {

@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import dotenv from "dotenv";
+import { User } from "../entities/index.js";
 dotenv.config();
 
 if (!process.env.DATABASE_URL) {
@@ -14,7 +15,7 @@ export const AppDataSource = new DataSource({
   },
   synchronize: false, // Chỉ bật ở môi trường development
   logging: false,
-  entities: ["../entities/*.js"],
+  entities: [User], // Fixed entities path to include all subdirectories
 });
 
 // Kiểm tra kết nối

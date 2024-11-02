@@ -2,11 +2,17 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { AppDataSource } from "./config/index.js";
-import { authRouter, userRouter } from "./Routers/index.js";
+import { authRouter } from "./Routers/index.js";
+import path from "path";
+import { fileURLToPath } from "url";
 dotenv.config();
 
 const app = express();
 
+//we need to change up how __dirname is used for ES6 purposes
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+//now please load my static html and css files for my express app, from my /dist directory
+app.use(express.static(path.join(__dirname, "dist")));
 app.use(express.json());
 app.use(cors());
 AppDataSource.initialize()

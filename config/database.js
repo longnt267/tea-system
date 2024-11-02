@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   },
   synchronize: false, // Chỉ bật ở môi trường development
   logging: false,
-  entities: ["./entities/*.js"],
+  entities: ["../entities/*.js"],
 });
 
 // Kiểm tra kết nối

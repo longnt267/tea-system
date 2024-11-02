@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
 import { AppDataSource } from "../config/index.js";
-import { User } from "../entities/index.js";
+import { User } from "../entities/user.js";
 import { ERoles } from "../constants/index.js";
 
 const userRepository = AppDataSource.getRepository(User);

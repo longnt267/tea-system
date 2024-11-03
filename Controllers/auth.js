@@ -1,11 +1,8 @@
 import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
-import { AppDataSource } from "../config/index.js";
-import { User } from "../entities/user.js";
+import { User } from "../models/user.js";
 import { ERoles } from "../constants/index.js";
-
-const userRepository = AppDataSource.getRepository(User);
 
 const createToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -29,9 +26,7 @@ const registerUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await userRepository.findOne({
-      where: { email },
-    });
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
@@ -42,7 +37,7 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create new user
-    const user = await userRepository.save({
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -75,10 +70,8 @@ const loginUser = async (req, res) => {
         .json({ message: "Please provide email and password" });
     }
 
-    // Find user by email using TypeORM
-    const user = await userRepository.findOne({
-      where: { email },
-    });
+    // Find user by email using Mongoose
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });

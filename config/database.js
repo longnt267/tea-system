@@ -1,40 +1,36 @@
-import { DataSource } from "typeorm";
-import dotenv from "dotenv";
-dotenv.config();
+import { mongoose } from "mongoose";
+import { MONGODB_URI } from "../constants/index.js";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not defined in environment variables");
 }
 
-export const AppDataSource = new DataSource({
-  type: "postgres",
-  url: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  synchronize: false, // Chỉ bật ở môi trường development
-  logging: false,
-  entities: ["./entities/*.js"], // Fixed entities path to include all subdirectories
-});
+const options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  // useCreateIndex: true, // Bỏ comment nếu bạn cần đánh index
+  // useFindAndModify: false, // Bỏ comment nếu bạn muốn sử dụng findOneAndUpdate()
+};
 
-// Kiểm tra kết nối
-AppDataSource.initialize()
-  .then(() => {
-    console.log("Connected to Neon PostgreSQL!");
-  })
-  .catch((error) => {
-    console.error("Error connecting to database:", error);
-  });
+export const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(MONGODB_URI, options);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
 
-// Xử lý disconnect
-process.on("SIGINT", () => {
-  AppDataSource.destroy()
-    .then(() => {
-      console.log("Database connection closed.");
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error("Error closing database connection:", error);
-      process.exit(1);
+    // Xử lý các sự kiện kết nối
+    mongoose.connection.on("connected", () => {
+      console.log("Mongoose connected to db");
     });
-});
+
+    mongoose.connection.on("error", (err) => {
+      console.error("Mongoose connection error:", err);
+    });
+
+    mongoose.connection.on("disconnected", () => {
+      console.log("Mongoose connection is disconnected");
+    });
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  }
+};

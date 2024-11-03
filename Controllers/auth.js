@@ -2,10 +2,10 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
-import { ERoles } from "../constants/index.js";
+import { ERoles, JWT_SECRET } from "../constants/index.js";
 
 const createToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: "1d",
   });
 };

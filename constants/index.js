@@ -7,3 +7,4 @@ export const ERoles = {
 };
 
 export const MONGODB_URI = process.env.DATABASE_URL;
+export const JWT_SECRET = process.env.JWT_SECRET;

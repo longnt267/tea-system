@@ -1,23 +1,37 @@
-import { mongoose } from "mongoose";
+import mongoose from "mongoose";
 import { MONGODB_URI } from "../constants/index.js";
-
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is not defined in environment variables");
+if (!MONGODB_URI) {
+  throw new Error(
+    "Please define the MONGODB_URI environment variable inside .env"
+  );
 }
 
-const options = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  // useCreateIndex: true, // Bỏ comment nếu bạn cần đánh index
-  // useFindAndModify: false, // Bỏ comment nếu bạn muốn sử dụng findOneAndUpdate()
-};
+let cached = global.mongoose;
 
-export const connectDB = async () => {
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+export async function connectDB() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+      // Các options khác nếu cần
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
+  }
+
   try {
-    const conn = await mongoose.connect(MONGODB_URI, options);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    cached.conn = await cached.promise;
+    console.log("MongoDB Connected Successfully!");
 
-    // Xử lý các sự kiện kết nối
     mongoose.connection.on("connected", () => {
       console.log("Mongoose connected to db");
     });
@@ -29,8 +43,10 @@ export const connectDB = async () => {
     mongoose.connection.on("disconnected", () => {
       console.log("Mongoose connection is disconnected");
     });
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+
+    return cached.conn;
+  } catch (e) {
+    console.error("MongoDB Connection Error:", e);
+    throw e;
   }
-};
+}

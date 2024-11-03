@@ -6,10 +6,21 @@ import { connectDB } from "./config/database.js";
 dotenv.config();
 
 const app = express();
-connectDB();
 app.use(express.json());
 app.use(cors());
+// Database connection middleware
+const dbMiddleware = async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection error:", error);
+    res.status(500).json({ message: "Database connection error" });
+  }
+};
 
+// Apply database middleware to all routes
+app.use(dbMiddleware);
 // Default route
 app.use("/api/auth", authRouter);
 app.get("/", (req, res) => {

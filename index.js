@@ -1,28 +1,21 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { authRouter } from "./Routers/index.js";
-import { connectDB } from "./config/database.js";
+import { dbMiddleware } from "./middleware/database.js";
+import publicRoutes from "./Routers/publicRoutes.js";
+import protectedRoutes from "./Routers/protectedRoutes.js";
+import { verifyToken } from "./middleware/auth.js";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-// Database connection middleware
-const dbMiddleware = async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    console.error("Database connection error:", error);
-    res.status(500).json({ message: "Database connection error" });
-  }
-};
 
 // Apply database middleware to all routes
 app.use(dbMiddleware);
 // Default route
-app.use("/api/auth", authRouter);
+app.use("/api", publicRoutes);
+app.use("/api", verifyToken, protectedRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to the Chat App API");
 });

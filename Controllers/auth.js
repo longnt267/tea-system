@@ -12,7 +12,7 @@ const createToken = (userId) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, ...args } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -42,6 +42,7 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       role: ERoles.USER,
+      ...args,
     });
 
     // Generate token

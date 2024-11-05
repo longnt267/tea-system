@@ -1,28 +1,23 @@
 import mongoose from "mongoose";
-import { ERoles } from "../constants/index.js";
 
-const userSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
     },
-    email: {
+    url: {
       type: String,
       unique: true,
       required: true,
     },
-    password: {
+    description: {
       type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      enum: Object.values(ERoles),
       required: true,
     },
     tea: {
       type: Number,
+      required: true,
       default: 0,
     },
   },
@@ -31,4 +26,4 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-export const User = mongoose.model("User", userSchema);
+export const Product = mongoose.model("Product", productSchema);

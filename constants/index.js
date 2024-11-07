@@ -6,5 +6,10 @@ export const ERoles = {
   USER: "USER",
 };
 
+export const EOrderStatus = {
+  PENDING: "Chờ giao hàng",
+  CONFIRM: "Đã mukbang",
+};
+
 export const MONGODB_URI = process.env.DATABASE_URL;
 export const JWT_SECRET = process.env.JWT_SECRET;

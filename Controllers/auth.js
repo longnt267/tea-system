@@ -86,13 +86,11 @@ const loginUser = async (req, res) => {
 
     // Generate JWT token
     const token = createToken(user.id);
-
+    delete user.password;
     // Return user info and token
     res.status(200).json({
       message: "Login successful",
-      id: user.id,
-      name: user.name,
-      email: user.email,
+      user,
       token,
     });
   } catch (error) {

@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
 import { ERoles, JWT_SECRET } from "../constants/index.js";
 
-const createToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, {
+const createToken = (id) => {
+  return jwt.sign({ id }, JWT_SECRET, {
     expiresIn: "1d",
   });
 };

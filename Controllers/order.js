@@ -13,9 +13,11 @@ export const createOrder = async (req, res) => {
     // Update user's tea count
     const user = await User.findById(userId);
     user.tea += order.totalTea;
-    delete user.password
+    delete user.password;
     await user.save();
-    res.status(201).json({ message: "Order created successfully", order, user });
+    res
+      .status(201)
+      .json({ message: "Order created successfully", order, user });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -24,9 +26,12 @@ export const createOrder = async (req, res) => {
 export const getOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const totalOrders = await Order.countDocuments();
+    const userId = req.user.id;
+    const totalOrders = await Order.countDocuments({ user: userId });
     const totalPage = Math.ceil(totalOrders / limit);
-    const orders = await Order.find()
+    const orders = await Order.find({ user: userId })
+      .populate("product", "name") // Add product info
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -37,6 +42,7 @@ export const getOrders = async (req, res) => {
       page,
       currentPage: page,
       totalPage,
+      count: totalOrders,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

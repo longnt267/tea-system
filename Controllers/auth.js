@@ -2,13 +2,26 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
+import { Prize } from "../models/prize.js";
 import { ERoles, JWT_SECRET } from "../constants/index.js";
+import { v2 as cloudinary } from "cloudinary";
+import multer from "multer";
 
 const createToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET, {
     expiresIn: "1d",
   });
 };
+
+cloudinary.config({
+  cloud_name: "dahdim8zk",
+  api_key: "346556622422922",
+  api_secret: "ROtxHJ1Hq-RLHZfq2oztM7MsLu8",
+});
+
+// Cấu hình multer để lưu file vào bộ nhớ
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage }).single("file");
 
 const registerUser = async (req, res) => {
   try {
@@ -98,4 +111,55 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser };
+const savePrize = async (req, res) => {
+  try {
+    // Sử dụng multer để xử lý upload file ảnh
+    upload(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: 'Lỗi tải lên ảnh' });
+      }
+      
+      // Lấy thông tin prizeName và file từ request body
+      const prizeName = req.body.prizeName;
+      const file = req.file; // Chú ý dùng `req.file` thay vì `req.body.file` vì multer sẽ lưu file vào `req.file`
+
+      if (!file) {
+        return res.status(400).json({ success: false, message: 'Ảnh không được tìm thấy' });
+      }
+
+      // Upload ảnh lên Cloudinary
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto', // Tự động nhận dạng loại file (image, video, etc.)
+          public_id: `prizes/${Date.now()}_${file.originalname}`, // Tạo public_id cho file upload
+        },
+        async (error, cloudinaryResponse) => {
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Lỗi khi tải ảnh lên Cloudinary' });
+          }
+
+          // Lưu thông tin phần thưởng vào cơ sở dữ liệu
+          const prizeData = {
+            prize: prizeName, // Lưu tên phần thưởng vào trường prize
+            url: cloudinaryResponse.secure_url, // Lưu URL ảnh từ Cloudinary vào trường url
+          };
+
+          // Lưu thông tin vào model Prize (sử dụng mongoose)
+          const prize = await Prize.create(prizeData);
+
+          // Trả về thông tin phần thưởng đã lưu
+          res.status(201).json({
+            success: true,
+            message: 'Lưu phần thưởng thành công',
+            prize,
+          });
+        }
+      ).end(file.buffer); // Truyền buffer của file vào stream
+    });
+  } catch (error) {
+    console.error('Lỗi khi lưu phần thưởng:', error);
+    res.status(500).json({ success: false, message: 'Có lỗi xảy ra' });
+  }
+};
+
+export { loginUser, registerUser, savePrize };

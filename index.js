@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors("*"));
 
 // Apply database middleware to all routes
-app.use(dbMiddleware);
+//app.use(dbMiddleware);
 // Default route
 app.use("/api", publicRoutes);
 app.use("/api", verifyToken, protectedRoutes);

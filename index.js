@@ -15,7 +15,7 @@ app.use(cors("*"));
 //app.use(dbMiddleware);
 // Default route
 app.use("/api", publicRoutes);
-app.use("/api", verifyToken, protectedRoutes);
+//app.use("/api", verifyToken, protectedRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to the Chat App API");
 });

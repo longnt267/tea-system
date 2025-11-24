@@ -10,7 +10,7 @@ export const telegram = async (req, res) => {
   }
 };
 
-export const telegramSummary(req, res) {
+export const telegramSummary = async (req, res) => {
   try {
     if (req.method !== "POST") {
       return res.status(200).json({ message: "summary endpoint" });
@@ -33,4 +33,4 @@ export const telegramSummary(req, res) {
     console.error("summary error:", error);
     return res.status(500).json({ error: "summary failed" });
   }
-}
+};

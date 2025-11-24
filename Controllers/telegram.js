@@ -55,7 +55,7 @@ export const telegramSummary = async (req, res) => {
         });
 
         // Giới hạn 10 tin
-        if (messageStore[chatId].length > 10) {
+        if (messageStore[chatId].length > 50) {
           messageStore[chatId].shift();
         }
       }

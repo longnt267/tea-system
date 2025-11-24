@@ -10,7 +10,7 @@ export const telegram = async (req, res) => {
   }
 };
 
-export default async function telegramSummary(req, res) {
+export const telegramSummary(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(200).json({ message: "summary endpoint" });

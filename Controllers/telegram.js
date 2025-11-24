@@ -1,4 +1,4 @@
-import { TELEGRAM_API } from "../constants/index.js";
+import { TELEGRAM_BOT_TOKEN } from "../constants/index.js";
 
 export const telegram = async (req, res) => {
   try {
@@ -12,6 +12,7 @@ export const telegram = async (req, res) => {
 
 export const telegramSummary = async (req, res) => {
   try {
+    const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
     if (req.method !== "POST") {
       return res.status(200).json({ message: "summary endpoint" });
     }

@@ -11,9 +11,9 @@ export const telegram = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-const messageStore = {};
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 export const telegramSummary = async (req, res) => {
+  const messageStore = {};
   try {
     const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 

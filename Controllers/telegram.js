@@ -1,4 +1,5 @@
 import { TELEGRAM_BOT_TOKEN } from "../constants/index.js";
+import axios from "axios";
 
 export const telegram = async (req, res) => {
   try {

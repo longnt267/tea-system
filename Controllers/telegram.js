@@ -96,10 +96,16 @@ export const telegramSummary = async (req, res) => {
       ${replyText}
     `;
     console.log(prompt);
-    const aiResp = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    // const aiResp = await ai.models.generateContent({
+    //   model: "gemini-2.5-flash",
+    //   contents: prompt,
+    // });
+    const aiResp = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
+      {
+        contents: prompt,
+      }
+    );
     const aiSummary = aiResp?.text || "Không thể tạo tóm tắt.";
 
     await axios.post(`${TELEGRAM_API}/sendMessage`, {

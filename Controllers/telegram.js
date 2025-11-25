@@ -93,6 +93,7 @@ export const telegramSummary = async (req, res) => {
     const historyDocs = await Chat.find({ chatId })
       .sort({ createdAt: -1 })
       .limit(50);
+      console.log(historyDocs)
       console.log(14)
 
     const history = historyDocs.reverse(); // để đúng thứ tự từ cũ → mới

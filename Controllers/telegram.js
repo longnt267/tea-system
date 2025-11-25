@@ -86,11 +86,12 @@ export const telegramSummary = async (req, res) => {
     const isSummary = text.includes("/summary");
     if (!isSummary) return;
     console.log(13)
+    console.log("chatId", chatId)
 
     // ============================
     // 3) LẤY LỊCH SỬ CHAT
     // ============================
-    const historyDocs = await Chat.find({ chatId })
+    const historyDocs = await Chat.find({ })
       .sort({ createdAt: -1 })
       .limit(50);
       console.log(historyDocs)

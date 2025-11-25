@@ -1,5 +1,4 @@
-import { User } from "../models/user.js";
-
+import { User } from "../models/chat.js";
 
 export const getUsers = async (req, res) => {
   try {

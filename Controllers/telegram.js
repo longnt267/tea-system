@@ -90,6 +90,7 @@ export const telegramSummary = async (req, res) => {
   try {
     const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
     const BOT_USERNAME = "longsummary_bot";
+    res.status(200).send("OK");
 
     const update = req.body;
     console.log("WEBHOOK UPDATE:", JSON.stringify(update));
@@ -216,7 +217,6 @@ export const telegramSummary = async (req, res) => {
       text: aiSummary,
     });
     // Đảm bảo Telegram không retry webhook
-    res.status(200).send("OK");
   } catch (err) {
     console.error("Error in webhook:", err);
   }

@@ -123,11 +123,13 @@ export const telegramSummary = async (req, res) => {
         },
       }
     );
+    console.log("aiResp",aiResp);
+    console.log("-------------------");
 
     const aiSummary =
       aiResp?.text ||
       "Không thể tạo tóm tắt.";
-
+    console.log("aiResp?.text",aiResp?.text);
     // ============================
     // 6) GỬI KẾT QUẢ VỀ TELEGRAM
     // ============================

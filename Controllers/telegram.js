@@ -24,28 +24,36 @@ export const telegramSummary = async (req, res) => {
 
     const update = req.body;
     console.log("WEBHOOK UPDATE:", JSON.stringify(update));
-
+    console.log(1)
     if (!update.message) return;
+    console.log(2)
 
     const msg = update.message;
+    console.log(3)
 
     // Bỏ qua tin từ bot
     if (msg.from?.is_bot) return;
+    console.log(4)
 
     if (!msg.text) return;
+    console.log(5)
 
     const text = msg.text;
     const chatId = msg.chat.id;
+    console.log(6)
 
     // Lấy tên người gửi
     let name =
       (msg.from.first_name || "") +
       (msg.from.last_name ? " " + msg.from.last_name : "");
+      console.log(7)
 
     if (!name.trim()) name = msg.from.username || "Unknown";
+    console.log(8)
 
     const isControlMessage =
       text.includes(`@${BOT_USERNAME}`) || text.includes("/summary");
+      console.log(9)
 
     // ============================
     // 1) LƯU TIN NHẮN VÀO DATABASE
@@ -61,9 +69,8 @@ export const telegramSummary = async (req, res) => {
           { sort: { createdAt: 1 } } // xóa tin cũ nhất
         );
       }
-
-      return;
     }
+    console.log(10)
 
     // ============================
     // 2) Kiểm tra tag bot + có /summary
@@ -71,11 +78,14 @@ export const telegramSummary = async (req, res) => {
     const isTagged =
       text.includes(`@${BOT_USERNAME}`) ||
       text.includes(`/summary@${BOT_USERNAME}`);
+      console.log(11)
 
     if (!isTagged) return;
+    console.log(12)
 
     const isSummary = text.includes("/summary");
     if (!isSummary) return;
+    console.log(13)
 
     // ============================
     // 3) LẤY LỊCH SỬ CHAT
@@ -83,8 +93,10 @@ export const telegramSummary = async (req, res) => {
     const historyDocs = await Chat.find({ chatId })
       .sort({ createdAt: -1 })
       .limit(50);
+      console.log(14)
 
     const history = historyDocs.reverse(); // để đúng thứ tự từ cũ → mới
+    console.log(15)
 
     const replyText = history
       .map((m) => `${m.name}: ${m.text}`)

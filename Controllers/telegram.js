@@ -108,9 +108,19 @@ export const telegramSummary = async (req, res) => {
     // 5) GỌI GEMINI API
     // ============================
     const aiResp = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
-        contents: prompt,
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      {
+        headers: {
+          "x-goog-api-key": API_KEY,
+          "Content-Type": "application/json",
+        },
       }
     );
 

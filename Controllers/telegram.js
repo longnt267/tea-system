@@ -135,7 +135,7 @@ export const telegramSummary = async (req, res) => {
       if (count > 50) {
         await Chat.findOneAndDelete(
           { chatId },
-          { sort: { createdAt: 1 } } // xóa tin cũ nhất
+          { sort: { _id: 1 } }  // XÓA THEO _id CŨ NHẤT
         );
       }
     }

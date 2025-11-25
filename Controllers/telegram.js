@@ -161,7 +161,7 @@ export const telegramSummary = async (req, res) => {
     // 3) LẤY LỊCH SỬ CHAT
     // ============================
     const historyDocs = await Chat.find({ chatId })
-    .sort({ _id: -1 }) // new → old (theo timestamp trong ObjectId)
+    .sort({ createdAt: -1 })   // newest → oldest
     .limit(50)
     .lean();
     console.log(15)

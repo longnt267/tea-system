@@ -13,20 +13,157 @@ export const telegram = async (req, res) => {
   }
 };
 
+// export const telegramSummary = async (req, res) => {
+//   try {
+
+//     console.log("START TEST");
+//     // ---- 2) Query test ----
+//     console.log("RUNNING QUERY...");
+//     const historyDocs = await Chat.find({})
+//       .sort({ createdAt: -1 })
+//       .limit(50)
+//       .lean();
+
+//     console.log("FOUND DOCS:", historyDocs.length);
+//     console.log(14);
+//      // để đúng thứ tự từ cũ → mới
+//     console.log(15)
+
+//     const replyText = historyDocs
+//       .map((m) => `${m.name}: ${m.text}`)
+//       .join("\n");
+
+//     // ============================
+//     // 4) TẠO PROMPT CHO GEMINI
+//     // ============================
+//     const prompt =
+//       "Hãy tóm tắt đoạn hội thoại sau THEO TỪNG NGƯỜI GỬI.\n" +
+//       "Với mỗi người, hãy viết 1–2 câu mô tả ngắn gọn họ đã nói những gì.\n\n" +
+//       "Format output:\n" +
+//       "TênNgười1: nội dung chính họ nói\n" +
+//       "TênNgười2: nội dung chính họ nói\n\n" +
+//       "Đoạn hội thoại:\n\n" +
+//       replyText;
+
+//     console.log("PROMPT:", prompt);
+
+//     // ============================
+//     // 5) GỌI GEMINI API
+//     // ============================
+//     const aiResp = await axios.post(
+//       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+//       {
+//         contents: [
+//           {
+//             parts: [{ text: prompt }],
+//           },
+//         ],
+//       },
+//       {
+//         headers: {
+//           "x-goog-api-key": API_KEY,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+//     console.log("aiResp",aiResp);
+//     console.log("-------------------");
+
+//     const aiSummary =
+//     aiResp.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Không tóm tắt được.";
+//     // ============================
+//     // 6) GỬI KẾT QUẢ VỀ TELEGRAM
+//     // ============================
+//     await axios.post(`${TELEGRAM_API}/sendMessage`, {
+//       chat_id: '-1003398663266',
+//       text: aiSummary,
+//     });
+//     res.status(200).send("OK TEST"); // để Telegram không retry
+
+//   } catch (err) {
+//     console.error("Error in test:", err);
+//   }
+// };
+
+
 export const telegramSummary = async (req, res) => {
   try {
+    const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+    const BOT_USERNAME = "longsummary_bot";
 
-    console.log("START TEST");
-    // ---- 2) Query test ----
-    console.log("RUNNING QUERY...");
-    const historyDocs = await Chat.find({})
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    const update = req.body;
+    console.log("WEBHOOK UPDATE:", JSON.stringify(update));
+    console.log(1)
+    if (!update.message) return;
+    console.log(2)
 
-    console.log("FOUND DOCS:", historyDocs.length);
-    console.log(14);
-     // để đúng thứ tự từ cũ → mới
+    const msg = update.message;
+    console.log(3)
+
+    // Bỏ qua tin từ bot
+    if (msg.from?.is_bot) return;
+    console.log(4)
+
+    if (!msg.text) return;
+    console.log(5)
+
+    const text = msg.text;
+    const chatId = msg.chat.id;
+    console.log(6)
+
+    // Lấy tên người gửi
+    let name =
+      (msg.from.first_name || "") +
+      (msg.from.last_name ? " " + msg.from.last_name : "");
+      console.log(7)
+
+    if (!name.trim()) name = msg.from.username || "Unknown";
+    console.log(8)
+
+    const isControlMessage =
+      text.includes(`@${BOT_USERNAME}`) || text.includes("/summary");
+      console.log(9)
+
+    // ============================
+    // 1) LƯU TIN NHẮN VÀO DATABASE
+    // ============================
+    if (!isControlMessage) {
+      await Chat.create({ chatId, name, text });
+
+      // giữ tối đa 50 tin nhắn mỗi group
+      const count = await Chat.countDocuments({ chatId });
+      if (count > 50) {
+        await Chat.findOneAndDelete(
+          { chatId },
+          { sort: { createdAt: 1 } } // xóa tin cũ nhất
+        );
+      }
+    }
+    console.log(10)
+
+    // ============================
+    // 2) Kiểm tra tag bot + có /summary
+    // ============================
+    const isTagged =
+      text.includes(`@${BOT_USERNAME}`) ||
+      text.includes(`/summary@${BOT_USERNAME}`);
+      console.log(11)
+
+    if (!isTagged) return;
+    console.log(12)
+
+    const isSummary = text.includes("/summary");
+    if (!isSummary) return;
+    console.log(13)
+    console.log("chatId", chatId)
+
+    // ============================
+    // 3) LẤY LỊCH SỬ CHAT
+    // ============================
+    const historyDocs = await Chat.find({ chatId })
+    .sort({ _id: -1 }) // new → old (theo timestamp trong ObjectId)
+    .limit(50)
+    .lean();
     console.log(15)
 
     const replyText = historyDocs
@@ -69,164 +206,21 @@ export const telegramSummary = async (req, res) => {
     console.log("aiResp",aiResp);
     console.log("-------------------");
 
-    const aiSummary =
-    aiResp.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Không tóm tắt được.";
+    const aiSummary = aiResp.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Không tóm tắt được.";
+    console.log("aiResp?.text",aiResp?.text);
     // ============================
     // 6) GỬI KẾT QUẢ VỀ TELEGRAM
     // ============================
     await axios.post(`${TELEGRAM_API}/sendMessage`, {
-      chat_id: '-1003398663266',
+      chat_id: chatId,
       text: aiSummary,
     });
-    res.status(200).send("OK TEST"); // để Telegram không retry
-
+    // Đảm bảo Telegram không retry webhook
+    res.status(200).send("OK");
   } catch (err) {
-    console.error("Error in test:", err);
+    console.error("Error in webhook:", err);
   }
 };
-
-
-// export const telegramSummary = async (req, res) => {
-//   try {
-//     const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-//     const BOT_USERNAME = "longsummary_bot";
-
-//     // Đảm bảo Telegram không retry webhook
-//     res.status(200).send("OK");
-
-//     const update = req.body;
-//     console.log("WEBHOOK UPDATE:", JSON.stringify(update));
-//     console.log(1)
-//     if (!update.message) return;
-//     console.log(2)
-
-//     const msg = update.message;
-//     console.log(3)
-
-//     // Bỏ qua tin từ bot
-//     if (msg.from?.is_bot) return;
-//     console.log(4)
-
-//     if (!msg.text) return;
-//     console.log(5)
-
-//     const text = msg.text;
-//     const chatId = msg.chat.id;
-//     console.log(6)
-
-//     // Lấy tên người gửi
-//     let name =
-//       (msg.from.first_name || "") +
-//       (msg.from.last_name ? " " + msg.from.last_name : "");
-//       console.log(7)
-
-//     if (!name.trim()) name = msg.from.username || "Unknown";
-//     console.log(8)
-
-//     const isControlMessage =
-//       text.includes(`@${BOT_USERNAME}`) || text.includes("/summary");
-//       console.log(9)
-
-//     // ============================
-//     // 1) LƯU TIN NHẮN VÀO DATABASE
-//     // ============================
-//     if (!isControlMessage) {
-//       await Chat.create({ chatId, name, text });
-
-//       // giữ tối đa 50 tin nhắn mỗi group
-//       const count = await Chat.countDocuments({ chatId });
-//       if (count > 50) {
-//         await Chat.findOneAndDelete(
-//           { chatId },
-//           { sort: { createdAt: 1 } } // xóa tin cũ nhất
-//         );
-//       }
-//     }
-//     console.log(10)
-
-//     // ============================
-//     // 2) Kiểm tra tag bot + có /summary
-//     // ============================
-//     const isTagged =
-//       text.includes(`@${BOT_USERNAME}`) ||
-//       text.includes(`/summary@${BOT_USERNAME}`);
-//       console.log(11)
-
-//     if (!isTagged) return;
-//     console.log(12)
-
-//     const isSummary = text.includes("/summary");
-//     if (!isSummary) return;
-//     console.log(13)
-//     console.log("chatId", chatId)
-
-//     // ============================
-//     // 3) LẤY LỊCH SỬ CHAT
-//     // ============================
-//     const historyDocs = await Chat.find({ })
-//       .sort({ createdAt: -1 })
-//       .limit(50);
-//       console.log(historyDocs)
-//       console.log(14)
-
-//     const history = historyDocs.reverse(); // để đúng thứ tự từ cũ → mới
-//     console.log(15)
-
-//     const replyText = history
-//       .map((m) => `${m.name}: ${m.text}`)
-//       .join("\n");
-
-//     // ============================
-//     // 4) TẠO PROMPT CHO GEMINI
-//     // ============================
-//     const prompt =
-//       "Hãy tóm tắt đoạn hội thoại sau THEO TỪNG NGƯỜI GỬI.\n" +
-//       "Với mỗi người, hãy viết 1–2 câu mô tả ngắn gọn họ đã nói những gì.\n\n" +
-//       "Format output:\n" +
-//       "TênNgười1: nội dung chính họ nói\n" +
-//       "TênNgười2: nội dung chính họ nói\n\n" +
-//       "Đoạn hội thoại:\n\n" +
-//       replyText;
-
-//     console.log("PROMPT:", prompt);
-
-//     // ============================
-//     // 5) GỌI GEMINI API
-//     // ============================
-//     const aiResp = await axios.post(
-//       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-//       {
-//         contents: [
-//           {
-//             parts: [{ text: prompt }],
-//           },
-//         ],
-//       },
-//       {
-//         headers: {
-//           "x-goog-api-key": API_KEY,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     console.log("aiResp",aiResp);
-//     console.log("-------------------");
-
-//     const aiSummary =
-//       aiResp?.text ||
-//       "Không thể tạo tóm tắt.";
-//     console.log("aiResp?.text",aiResp?.text);
-//     // ============================
-//     // 6) GỬI KẾT QUẢ VỀ TELEGRAM
-//     // ============================
-//     await axios.post(`${TELEGRAM_API}/sendMessage`, {
-//       chat_id: chatId,
-//       text: aiSummary,
-//     });
-//   } catch (err) {
-//     console.error("Error in webhook:", err);
-//   }
-// };
 
 // export const telegramSummary = async (req, res) => {
 //   const messageStore = {};

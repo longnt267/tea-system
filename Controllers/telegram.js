@@ -85,44 +85,44 @@ export const telegram = async (req, res) => {
 //   }
 // };
 
-
 export const telegramSummary = async (req, res) => {
+  res.status(200).send("OK");
   try {
     const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
     const BOT_USERNAME = "longsummary_bot";
 
     const update = req.body;
     console.log("WEBHOOK UPDATE:", JSON.stringify(update));
-    console.log(1)
+    console.log(1);
     if (!update.message) return;
-    console.log(2)
+    console.log(2);
 
     const msg = update.message;
-    console.log(3)
+    console.log(3);
 
     // Bỏ qua tin từ bot
     if (msg.from?.is_bot) return;
-    console.log(4)
+    console.log(4);
 
     if (!msg.text) return;
-    console.log(5)
+    console.log(5);
 
     const text = msg.text;
     const chatId = msg.chat.id;
-    console.log(6)
+    console.log(6);
 
     // Lấy tên người gửi
     let name =
       (msg.from.first_name || "") +
       (msg.from.last_name ? " " + msg.from.last_name : "");
-      console.log(7)
+    console.log(7);
 
     if (!name.trim()) name = msg.from.username || "Unknown";
-    console.log(8)
+    console.log(8);
 
     const isControlMessage =
       text.includes(`@${BOT_USERNAME}`) || text.includes("/summary");
-      console.log(9)
+    console.log(9);
 
     // ============================
     // 1) LƯU TIN NHẮN VÀO DATABASE
@@ -135,11 +135,11 @@ export const telegramSummary = async (req, res) => {
       if (count > 50) {
         await Chat.findOneAndDelete(
           { chatId },
-          { sort: { _id: 1 } }  // XÓA THEO _id CŨ NHẤT
+          { sort: { _id: 1 } } // XÓA THEO _id CŨ NHẤT
         );
       }
     }
-    console.log(10)
+    console.log(10);
 
     // ============================
     // 2) Kiểm tra tag bot + có /summary
@@ -147,28 +147,26 @@ export const telegramSummary = async (req, res) => {
     const isTagged =
       text.includes(`@${BOT_USERNAME}`) ||
       text.includes(`/summary@${BOT_USERNAME}`);
-      console.log(11)
+    console.log(11);
 
     if (!isTagged) return;
-    console.log(12)
+    console.log(12);
 
     const isSummary = text.includes("/summary");
     if (!isSummary) return;
-    console.log(13)
-    console.log("chatId", chatId)
+    console.log(13);
+    console.log("chatId", chatId);
 
     // ============================
     // 3) LẤY LỊCH SỬ CHAT
     // ============================
     const historyDocs = await Chat.find({ chatId })
-    .sort({ createdAt: -1 })   // newest → oldest
-    .limit(50)
-    .lean();
-    console.log(15)
+      .sort({ createdAt: -1 }) // newest → oldest
+      .limit(50)
+      .lean();
+    console.log(15);
 
-    const replyText = historyDocs
-      .map((m) => `${m.name}: ${m.text}`)
-      .join("\n");
+    const replyText = historyDocs.map((m) => `${m.name}: ${m.text}`).join("\n");
 
     // ============================
     // 4) TẠO PROMPT CHO GEMINI
@@ -203,11 +201,13 @@ export const telegramSummary = async (req, res) => {
         },
       }
     );
-    console.log("aiResp",aiResp);
+    console.log("aiResp", aiResp);
     console.log("-------------------");
 
-    const aiSummary = aiResp.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Không tóm tắt được.";
-    console.log("aiResp?.text",aiResp?.text);
+    const aiSummary =
+      aiResp.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Không tóm tắt được.";
+    console.log("aiResp?.text", aiResp?.text);
     // ============================
     // 6) GỬI KẾT QUẢ VỀ TELEGRAM
     // ============================
@@ -216,8 +216,6 @@ export const telegramSummary = async (req, res) => {
       text: aiSummary,
     });
     // Đảm bảo Telegram không retry webhook
-    res.status(200).send("OK");
-
   } catch (err) {
     console.error("Error in webhook:", err);
   }

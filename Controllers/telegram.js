@@ -178,7 +178,7 @@ export const telegramSummary = async (req, res) => {
     // 4) TẠO PROMPT CHO GEMINI
     // ============================
     const prompt =
-      "Hãy tóm tắt đoạn hội thoại sau THEO TỪNG NGƯỜI GỬI với giọng điệu điêu ngoa, xỏ xiên.\n" +
+      "Hãy tóm tắt đoạn hội thoại sau THEO TỪNG NGƯỜI GỬi\n" +
       "Với mỗi người, hãy viết 1–2 câu mô tả ngắn gọn họ đã nói những gì.\n\n" +
       "Đồng thời sâu chuỗi bối cảnh của đoạn chat để tóm tắt tin nhắn đúng ngữ cảnh.\n\n" +
       "Format output:\n" +

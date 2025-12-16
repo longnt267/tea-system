@@ -127,7 +127,7 @@ export const telegramSummary = async (req, res) => {
     // ============================
     // 1) LƯU TIN NHẮN VÀO DATABASE
     // ============================
-    if (text.includes(`@${BOT_USERNAME}`) || !text.includes("/summary")) {
+    if (text.includes(`@${BOT_USERNAME}`) && !text.includes("/summary")) {
       await axios.post(`${TELEGRAM_API}/sendMessage`, {
         chat_id: chatId,
         text: "Chịu chết rồi, không biết rep sao",

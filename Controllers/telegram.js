@@ -161,7 +161,7 @@ export const telegramSummary = async (req, res) => {
     // 3) LẤY LỊCH SỬ CHAT
     // ============================
     const historyDocs = await Chat.find({ chatId })
-      .sort({ createdAt: -1 }) // newest → oldest
+      .sort({ createdAt: 1 }) // newest → oldest
       .limit(50)
       .lean();
     console.log(15);
@@ -174,6 +174,7 @@ export const telegramSummary = async (req, res) => {
     const prompt =
       "Hãy tóm tắt đoạn hội thoại sau THEO TỪNG NGƯỜI GỬI.\n" +
       "Với mỗi người, hãy viết 1–2 câu mô tả ngắn gọn họ đã nói những gì.\n\n" +
+      "Đồng thời sâu chuỗi bối cảnh của đoạn chat để tóm tắt tin nhắn đúng ngữ cảnh.\n\n" +
       "Format output:\n" +
       "TênNgười1: nội dung chính họ nói\n" +
       "TênNgười2: nội dung chính họ nói\n\n" +

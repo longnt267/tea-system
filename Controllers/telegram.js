@@ -127,7 +127,13 @@ export const telegramSummary = async (req, res) => {
     // ============================
     // 1) LƯU TIN NHẮN VÀO DATABASE
     // ============================
-    if (!isControlMessage) {
+    if (text.includes(`@${BOT_USERNAME}`) || !text.includes("/summary")) {
+      await axios.post(`${TELEGRAM_API}/sendMessage`, {
+        chat_id: chatId,
+        text: "Chịu chết rồi, không biết rep sao",
+      });
+    }
+    if (!isControlMessage && text) {
       await Chat.create({ chatId, name, text });
 
       // giữ tối đa 50 tin nhắn mỗi group

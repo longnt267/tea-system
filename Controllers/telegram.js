@@ -333,3 +333,102 @@ export const telegramSummary = async (req, res) => {
 //     // Telegram không retry vì mình đã response 200 trước đó
 //   }
 // };
+
+const HANOI = {
+  lat: 21.0285,
+  lon: 105.8542,
+};
+
+function mapAQI(aqi) {
+  switch (aqi) {
+    case 1:
+      return "🟢 Tốt";
+    case 2:
+      return "🟡 Khá";
+    case 3:
+      return "🟠 Trung bình";
+    case 4:
+      return "🔴 Kém";
+    case 5:
+      return "🟣 Rất kém";
+    default:
+      return "Không rõ";
+  }
+}
+
+export async function handleWeather(chatId, TELEGRAM_API) {
+  const API_KEY = process.env.OPENWEATHER_API_KEY;
+
+  // 1️⃣ Thời tiết
+  const weatherRes = await axios.get(
+    "https://api.openweathermap.org/data/2.5/weather",
+    {
+      params: {
+        lat: HANOI.lat,
+        lon: HANOI.lon,
+        units: "metric",
+        lang: "vi",
+        appid: API_KEY,
+      },
+    }
+  );
+
+  // 2️⃣ AQI
+  const airRes = await axios.get(
+    "https://api.openweathermap.org/data/2.5/air_pollution",
+    {
+      params: {
+        lat: HANOI.lat,
+        lon: HANOI.lon,
+        appid: API_KEY,
+      },
+    }
+  );
+
+  const weather = weatherRes.data;
+  const air = airRes.data.list[0];
+
+  const temp = Math.round(weather.main.temp);
+  const description = weather.weather[0].description;
+  const aqiText = mapAQI(air.main.aqi);
+
+  const message = `
+📍 *Hà Nội hôm nay*
+🌡️ Nhiệt độ: *${temp}°C*
+🌤️ Thời tiết: *${description}*
+😷 Chất lượng không khí: *${aqiText}*
+`;
+
+  await axios.post(`${TELEGRAM_API}/sendMessage`, {
+    chat_id: chatId,
+    text: message,
+    parse_mode: "Markdown",
+  });
+}
+
+export const telegramDaily = async (req, res) => {
+  res.status(200).send("OK");
+  try {
+    const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+    const BOT_USERNAME = "thanklongdailybot";
+
+    const text = msg.text;
+    const chatId = msg.chat.id;
+
+    const command = text.split(" ")[0].split("@")[0];
+
+    switch (command) {
+      case "/weather":
+        await handleWeather(chatId, TELEGRAM_API);
+        break;
+
+      case "/music":
+        break;
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error("Error in webhook:", err);
+  }
+};
